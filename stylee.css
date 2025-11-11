@@ -1,0 +1,476 @@
+/* RESET BÁSICO */
+•⁠  ⁠{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* FONDO GENERAL */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-size: contain;
+  background-position:center top;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-color: #000;
+  color:#ffffff;
+  min-height: 100vh;
+  transition:background-image 0.8s ease-in-out, background-position 0.8s ease;
+  transform: scale(1.1);
+}
+
+/* ========== BANNER SUPERIOR ========== */
+.banner {
+  position: relative;
+  height: 180px;
+  background-image: url("https://images.pexels.com/photos/799137/pexels-photo-799137.jpeg?auto=compress&cs=tinysrgb&w=1600");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition:background-image 0.8s ease-in-out, background-position 0.8s ease-in-out;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(11, 12, 16, 0.8), rgba(69, 162, 158, 0.6));
+  backdrop-filter: blur(2px);
+}
+
+.banner-content {
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+
+.banner-title {
+  font-size: 2.2rem;
+  letter-spacing: 1px;
+  color: #66fcf1;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
+}
+
+.banner-subtitle {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  color: #c5c6c7;
+}
+
+/* ========== CONTENEDOR PRINCIPAL ========== */
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+/* ========== PANEL DE BÚSQUEDA ========== */
+.search-section {
+  margin-top: 10px;
+}
+
+.search-panel {
+  background: rgba(31, 40, 51, 0.95);
+  border-radius: 14px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+}
+
+.field-grow {
+  flex: 1;
+}
+
+.field-year {
+  max-width: 130px;
+}
+
+.field-group label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #c5c6c7;
+}
+
+select,
+input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #45a29e33;
+  outline: none;
+  font-size: 0.9rem;
+  background-color: #0b0c10;
+  color: #ffffff;
+  transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+select:focus,
+input:focus {
+  border-color: #66fcf1;
+  box-shadow: 0 0 8px rgba(102, 252, 241, 0.4);
+  background-color: #0f1722;
+}
+
+/* ========== BOTONES ========== */
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #45a29e, #66fcf1);
+  color: #0b0c10;
+}
+
+.btn.secondary {
+  background: #c3073f;
+  color: #ffffff;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ========== TEXTO DE INFORMACIÓN ========== */
+.info-text {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #c5c6c7;
+  text-align: right;
+}
+
+/* ========== GRID DE RESULTADOS ========== */
+.results-section {
+  margin-top: 20px;
+}
+
+.results-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 18px;
+}
+
+/* ========== TARJETAS DE PELÍCULAS ========== */
+.movie-card {
+  position: relative;
+  background: #1f2833;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(0);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Halo brillante al hacer hover */
+.movie-card::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(from 180deg, #66fcf1, #c3073f, #45a29e, #66fcf1);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.movie-card:hover::before {
+  opacity: 0.35;
+}
+
+/* Capa para que el contenido no se queme con el glow */
+.movie-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.movie-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.75);
+}
+
+.movie-card img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+}
+
+/* Contenido de la tarjeta */
+.movie-info {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  background: linear-gradient(180deg, rgba(11, 12, 16, 0.9), #1f2833);
+}
+
+.movie-title {
+  font-weight: bold;
+  color: #66fcf1;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.movie-meta {
+  color: #c5c6c7;
+  font-size: 0.75rem;
+}
+
+.movie-plot {
+  margin-top: 6px;
+  color: #c5c6c7;
+  font-size: 0.75rem;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ========== BOTÓN DE TRAILER ========== */
+.boton-trailer {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #e50914, #ff1f2a);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.2s ease;
+}
+
+.boton-trailer:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8);
+  filter: brightness(1.05);
+}
+
+.boton-trailer:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* CELULARES (pantallas pequeñas) */
+@media (max-width: 600px) {
+
+  .banner {
+    height: 150px;
+  }
+
+  .banner-title {
+    font-size: 1.6rem;
+  }
+
+  .banner-subtitle {
+    font-size: 0.8rem;
+    padding: 0 10px;
+  }
+
+  .app {
+    padding: 12px 10px 24px;
+  }
+
+  .search-panel {
+    padding: 12px 10px;
+    border-radius: 10px;
+  }
+
+  .search-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field-group,
+  .field-grow,
+  .field-year {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .button-row {
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 220px;
+  }
+
+  .info-text {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 0.8rem;
+  }
+
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .movie-card img {
+    height: 220px;
+  }
+
+  .movie-info {
+    padding: 8px;
+    font-size: 0.75rem;
+  }
+
+  .movie-title {
+    font-size: 0.85rem;
+  }
+
+  .movie-meta,
+  .movie-plot {
+    font-size: 0.7rem;
+  }
+
+  .boton-trailer {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* TABLETS Y PORTÁTILES (mediano) */
+@media (min-width: 601px) and (max-width: 1024px) {
+
+  .banner {
+    height: 180px;
+  }
+
+  .banner-title {
+    font-size: 2rem;
+  }
+
+  .app {
+    padding: 16px 14px 30px;
+  }
+
+  .search-panel {
+    padding: 16px 14px;
+  }
+
+  .search-row {
+    gap: 10px;
+  }
+
+  .field-grow {
+    flex: 2;
+  }
+
+  .field-year {
+    max-width: 150px;
+  }
+
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .movie-card img {
+    height: 240px;
+  }
+}
+
+/* PANTALLAS GRANDES / TV (muy ancho) */
+@media (min-width: 1400px) {
+
+  .app {
+    max-width: 1300px;
+    padding: 30px 20px 50px;
+  }
+
+  .banner {
+    height: 220px;
+  }
+
+  .banner-title {
+    font-size: 2.6rem;
+  }
+
+  .banner-subtitle {
+    font-size: 1rem;
+  }
+
+  .search-panel {
+    padding: 20px 20px 16px;
+  }
+
+  .field-group label {
+    font-size: 0.85rem;
+  }
+
+  select,
+  input {
+    font-size: 1rem;
+    padding: 10px 12px;
+  }
+
+  .btn {
+    font-size: 0.95rem;
+    padding: 9px 20px;
+  }
+
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 20px;
+  }
+
+  .movie-card img {
+    height: 280px;
+  }
+
+  .movie-info {
+    font-size: 0.9rem;
+  }
+
+  .movie-title {
+    font-size: 1rem;
+  }
+
+  .movie-meta,
+  .movie-plot {
+    font-size: 0.8rem;
+  }
+}

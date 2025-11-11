@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Buscador de Películas OMDb</title>
+<link rel="stylesheet" href="stylee.css" />
+</head>
+<body>
+<!-- BANNER SUPERIOR -->
+<header class="banner" id = "banner">
+    <div class="banner-overlay"></div>
+    <div class="banner-content">
+        <h1 class="banner-title">🎬 CineFinder</h1>
+        <p class="banner-subtitle">Busca películas por título, ID o año y mira sus trailers.</p>
+    </div>
+</header>
+
+<main class="app">
+    <!--PANEL DE BÚSQUEDA -->
+    <section class="search-section">
+        <div class="search-panel">
+        <div class="search-row">
+        <div class="field-group">
+            <label for="mode">Tipo de búsqueda</label>
+            <select id="mode">
+            <option value="s">Texto del título</option>
+            <option value="t">Título exacto</option>
+            <option value="i">ID de IMDb</option>
+            </select>
+        </div>
+
+        <div class="field-group field-grow">
+            <label for="queryInput">Buscar</label>
+            <input
+            id="queryInput"
+            type="text"
+            placeholder="Texto del título : ejemplo: Batman"
+            />
+        </div>
+
+        <div class="field-group field-year">
+            <label for="yearInput">Año (opcional)</label>
+            <input
+            id="yearInput"
+            type="number"
+            placeholder="Ej: 2010"
+            min="1900"
+            max="2100"
+            />
+        </div>
+        </div>
+
+        <div class="button-row">
+            <button id="searchButton" class="btn primary">Buscar</button>
+            <button id="nextPageButton" class="btn secondary">Página siguiente</button>
+        </div>
+    </div>
+
+    <div id="info" class="info-text"></div>
+    </section>
+
+    <!-- RESULTADOS -->
+    <section class="results-section">
+    <div id="results" class="results-grid"></div>
+    </section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
