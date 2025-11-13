@@ -11,7 +11,12 @@
 <main class="app">
   <!-- SIDEBAR (buscador) -->
   <aside class="sidebar">
-    <h1 class="title">🎬 CineFinder</h1>
+    <div class="header-controls">
+      <h1 class="title">🎬 CineFinder</h1>
+      <button id="themeToggle" class="theme-toggle" title="Cambiar tema">
+        <span class="theme-icon">🌙</span>
+      </button>
+    </div>
     <p class="subtitle">Busca por título, ID o filtra por año.</p>
 
     <section class="search-panel">
@@ -41,10 +46,24 @@
     </section>
 
     <div id="info" class="info-text"></div>
+
+    <!-- SECCIÓN DE BÚSQUEDAS RECIENTES -->
+    <section class="recent-searches">
+      <h3 class="recent-searches-title">🔍 Búsquedas Recientes</h3>
+      <div id="recentSearchesList" class="recent-searches-list">
+        <p class="no-recent-searches">No hay búsquedas recientes</p>
+      </div>
+    </section>
   </aside>
 
   <!-- RESULTADOS -->
   <section class="results-section">
+    <!-- CONTENEDOR PARA MENSAJES DE ADVERTENCIA -->
+    <div id="alertContainer" class="alert-container"></div>
+    
+    <!-- INFORMACIÓN DE BÚSQUEDA MEJORADA -->
+    <div id="searchInfo" class="search-info"></div>
+    
     <div id="results" class="results-grid"></div>
   </section>
 </main>
