@@ -25,6 +25,18 @@ const divInfo=document.getElementById("info");
 
 const contenedorResultados=document.getElementById("results");
 
+//referencias para las nuevas funcionalidades
+//contenedor de alertas para mensajes de advertencia
+const contenedorAlertas=document.getElementById("alertContainer");
+//div para mostrar la informacion de busqueda mejorada
+const divInfoBusqueda=document.getElementById("searchInfo");
+//boton para cambiar el tema (diurno/nocturno)
+const botonTema=document.getElementById("themeToggle");
+//icono del tema dentro del boton
+const iconoTema=botonTema.querySelector(".theme-icon");
+//contenedor de búsquedas recientes
+const contenedorBusquedasRecientes=document.getElementById("recentSearchesList");
+
 const banner = document.getElementById("banner");
 //poster que se van a usar como fondo 
 let listaPostersFondo=[];
@@ -41,6 +53,275 @@ let añoBusquedaActual="";
 let paginaActual=1; // pagina actual de resultados cuando modoActual===s
 let totalResultados=0; // cuando modoActual=== s
 
+//constantes para localStorage
+const CLAVE_BUSQUEDAS_RECIENTES="cineFinder_busquedas_recientes";
+const CLAVE_TEMA="cineFinder_tema";
+const MAX_BUSQUEDAS_RECIENTES=10; //numero maximo de busquedas recientes a guardar
+
+// ===========================
+// FUNCIONES PARA LOCALSTORAGE (BÚSQUEDAS RECIENTES)
+// ===========================
+
+//funcion para obtener las búsquedas recientes del localStorage
+function obtenerBusquedasRecientes(){
+    try{
+        const busquedas=localStorage.getItem(CLAVE_BUSQUEDAS_RECIENTES);
+        return busquedas ? JSON.parse(busquedas) : [];
+    }catch(error){
+        console.error("Error al leer búsquedas recientes:",error);
+        return [];
+    }
+}
+
+//funcion para guardar una nueva búsqueda en el localStorage
+function guardarBusquedaReciente(texto,modo,año){
+    try{
+        let busquedas=obtenerBusquedasRecientes();
+        
+        //creamos un objeto con la información de la búsqueda
+        const nuevaBusqueda={
+            texto:texto,
+            modo:modo,
+            año:año || "",
+            fecha:new Date().toISOString()
+        };
+        
+        //eliminamos búsquedas duplicadas (mismo texto, modo y año)
+        busquedas=busquedas.filter(b=>
+            !(b.texto===texto && b.modo===modo && b.año===(año || ""))
+        );
+        
+        //agregamos la nueva búsqueda al inicio
+        busquedas.unshift(nuevaBusqueda);
+        
+        //limitamos el número de búsquedas guardadas
+        if(busquedas.length>MAX_BUSQUEDAS_RECIENTES){
+            busquedas=busquedas.slice(0,MAX_BUSQUEDAS_RECIENTES);
+        }
+        
+        //guardamos en localStorage
+        localStorage.setItem(CLAVE_BUSQUEDAS_RECIENTES,JSON.stringify(busquedas));
+        
+        //actualizamos la lista visual
+        mostrarBusquedasRecientes();
+    }catch(error){
+        console.error("Error al guardar búsqueda reciente:",error);
+    }
+}
+
+//funcion para eliminar una búsqueda reciente del localStorage
+function eliminarBusquedaReciente(indice){
+    try{
+        let busquedas=obtenerBusquedasRecientes();
+        busquedas.splice(indice,1);
+        localStorage.setItem(CLAVE_BUSQUEDAS_RECIENTES,JSON.stringify(busquedas));
+        mostrarBusquedasRecientes();
+    }catch(error){
+        console.error("Error al eliminar búsqueda reciente:",error);
+    }
+}
+
+//funcion para mostrar las búsquedas recientes en el sidebar
+function mostrarBusquedasRecientes(){
+    const busquedas=obtenerBusquedasRecientes();
+    
+    //limpiamos el contenedor
+    contenedorBusquedasRecientes.innerHTML="";
+    
+    if(busquedas.length===0){
+        //si no hay búsquedas, mostramos un mensaje
+        const mensaje=document.createElement("p");
+        mensaje.className="no-recent-searches";
+        mensaje.textContent="No hay búsquedas recientes";
+        contenedorBusquedasRecientes.appendChild(mensaje);
+        return;
+    }
+    
+    //creamos un elemento para cada búsqueda reciente
+    busquedas.forEach((busqueda,indice)=>{
+        const item=document.createElement("div");
+        item.className="recent-search-item";
+        
+        //texto de la búsqueda (incluye modo y año si existe)
+        let textoMostrar=busqueda.texto;
+        if(busqueda.modo==="s"){
+            textoMostrar+=" (Texto)";
+        }else if(busqueda.modo==="t"){
+            textoMostrar+=" (Exacto)";
+        }else if(busqueda.modo==="i"){
+            textoMostrar+=" (ID)";
+        }
+        if(busqueda.año){
+            textoMostrar+=` - ${busqueda.año}`;
+        }
+        
+        item.innerHTML=`
+            <span class="recent-search-text">${textoMostrar}</span>
+            <button class="recent-search-remove" title="Eliminar">×</button>
+        `;
+        
+        //evento click para restaurar la búsqueda
+        item.addEventListener("click",(e)=>{
+            //si se hace click en el botón de eliminar, no restaurar
+            if(e.target.classList.contains("recent-search-remove")){
+                return;
+            }
+            //restauramos los valores de la búsqueda
+            selectorModo.value=busqueda.modo;
+            campoTextoBusqueda.value=busqueda.texto;
+            campoAño.value=busqueda.año || "";
+            //actualizamos el modo y ejecutamos la búsqueda
+            modoActual=busqueda.modo;
+            textoBusquedaActual=busqueda.texto;
+            añoBusquedaActual=busqueda.año || "";
+            paginaActual=1;
+            ejecutarBusqueda();
+        });
+        
+        //evento click para eliminar la búsqueda
+        const botonEliminar=item.querySelector(".recent-search-remove");
+        botonEliminar.addEventListener("click",(e)=>{
+            e.stopPropagation(); //evitamos que se active el click del item
+            eliminarBusquedaReciente(indice);
+        });
+        
+        contenedorBusquedasRecientes.appendChild(item);
+    });
+}
+
+// ===========================
+// FUNCIONES PARA MODO DIURNO/NOCTURNO
+// ===========================
+
+//funcion para obtener el tema guardado en localStorage
+function obtenerTemaGuardado(){
+    try{
+        return localStorage.getItem(CLAVE_TEMA) || "dark";
+    }catch(error){
+        console.error("Error al leer tema:",error);
+        return "dark";
+    }
+}
+
+//funcion para guardar el tema en localStorage
+function guardarTema(tema){
+    try{
+        localStorage.setItem(CLAVE_TEMA,tema);
+    }catch(error){
+        console.error("Error al guardar tema:",error);
+    }
+}
+
+//funcion para aplicar el tema (diurno o nocturno)
+function aplicarTema(tema){
+    if(tema==="light"){
+        document.body.classList.add("light-mode");
+        iconoTema.textContent="☀️";
+    }else{
+        document.body.classList.remove("light-mode");
+        iconoTema.textContent="🌙";
+    }
+    guardarTema(tema);
+}
+
+//evento click en el botón de tema
+botonTema.addEventListener("click",()=>{
+    const temaActual=document.body.classList.contains("light-mode") ? "light" : "dark";
+    const nuevoTema=temaActual==="light" ? "dark" : "light";
+    aplicarTema(nuevoTema);
+});
+
+//aplicamos el tema guardado al cargar la página
+aplicarTema(obtenerTemaGuardado());
+
+// ===========================
+// FUNCIONES PARA MENSAJES DE ADVERTENCIA (REEMPLAZAR ALERT)
+// ===========================
+
+//funcion para mostrar un mensaje de advertencia en lugar de usar alert()
+function mostrarAlerta(mensaje,tipo="error"){
+    //creamos el elemento de alerta
+    const alerta=document.createElement("div");
+    alerta.className=`alert ${tipo}`;
+    
+    //icono según el tipo
+    let icono="❌";
+    if(tipo==="warning"){
+        icono="⚠️";
+    }else if(tipo==="info"){
+        icono="ℹ️";
+    }
+    
+    alerta.innerHTML=`
+        <span>${icono}</span>
+        <span>${mensaje}</span>
+        <button class="alert-close">×</button>
+    `;
+    
+    //botón para cerrar la alerta
+    const botonCerrar=alerta.querySelector(".alert-close");
+    botonCerrar.addEventListener("click",()=>{
+        alerta.remove();
+    });
+    
+    //agregamos la alerta al contenedor
+    contenedorAlertas.appendChild(alerta);
+    
+    //eliminamos automáticamente después de 5 segundos
+    setTimeout(()=>{
+        if(alerta.parentNode){
+            alerta.remove();
+        }
+    },5000);
+}
+
+// ===========================
+// FUNCIONES PARA INFORMACIÓN DE BÚSQUEDA MEJORADA
+// ===========================
+
+//funcion para mostrar la información de búsqueda con mejor diseño
+function mostrarInfoBusqueda(modo,resultados,pagina,paginasMaximas,titulo){
+    //limpiamos el contenido anterior
+    divInfoBusqueda.innerHTML="";
+    
+    if(modo==="s"){
+        //modo de búsqueda por texto
+        divInfoBusqueda.innerHTML=`
+            <div class="search-info-item">
+                <span class="search-info-label">Modo:</span>
+                <span class="search-info-value">Texto en el título</span>
+            </div>
+            <span class="search-info-separator">|</span>
+            <div class="search-info-item">
+                <span class="search-info-label">Resultados:</span>
+                <span class="search-info-value">${resultados}</span>
+            </div>
+            <span class="search-info-separator">|</span>
+            <div class="search-info-item">
+                <span class="search-info-label">Página:</span>
+                <span class="search-info-value">${pagina} de ${paginasMaximas}</span>
+            </div>
+        `;
+    }else if(modo==="t" || modo==="i"){
+        //modo de título exacto o ID
+        const modoTexto=modo==="t" ? "Título exacto" : "ID de IMDb";
+        divInfoBusqueda.innerHTML=`
+            <div class="search-info-item">
+                <span class="search-info-label">Modo:</span>
+                <span class="search-info-value">${modoTexto}</span>
+            </div>
+            <span class="search-info-separator">|</span>
+            <div class="search-info-item">
+                <span class="search-info-label">Título:</span>
+                <span class="search-info-value">${titulo || "N/A"}</span>
+            </div>
+        `;
+    }
+}
+
+// ===========================
+// EVENTOS Y FUNCIONALIDADES PRINCIPALES
+// ===========================
 
 // cambio de modo de busqueda s , t , t y el placeholder 
 
@@ -74,7 +355,7 @@ botonBuscar.addEventListener("click",()=>{
 
     //validacion basica
     if(!textoUsuario){
-        alert("Escribe algo en el campo de busqueda");
+        mostrarAlerta("Escribe algo en el campo de búsqueda","warning");
         return;
     }
 
@@ -85,29 +366,33 @@ botonBuscar.addEventListener("click",()=>{
     añoBusquedaActual=añoUsuario;
     paginaActual=1; // siempre se inicia en la pagina 1
 
+    //guardamos la búsqueda en el historial
+    guardarBusquedaReciente(textoUsuario,modoActual,añoUsuario);
+
     //ejecutamos la busqueda
     ejecutarBusqueda();
 })
+
 //BOTON DE LA LA PAGINA SIGUIENTE
 
 botonPaginaSiguiente.addEventListener("click",()=>{
     //la paginacion solo tiene sentido si se usa el modo de busqueda
 
     if(modoActual!=='s'){
-        alert("no hay mas paginas disponibles");
+        mostrarAlerta("No hay más páginas disponibles","warning");
         return;
     }
 
     //si no se a hecho una busqueda no tiene sentido pasar a la pagina siguiente
     if(!textoBusquedaActual){
-        alert("Primero realiza una busqueda");
+        mostrarAlerta("Primero realiza una búsqueda","warning");
         return;
     }
     //calculamos cuantas pagina maximas hay (cada pagina tiene 10 resultados)
     const paginasMaximas=Math.ceil(totalResultados/10);
 
     if(paginaActual >= paginasMaximas){
-        alert("no hay mas paginas disponibles por el momento");
+        mostrarAlerta("No hay más páginas disponibles por el momento","warning");
         return;
     }
 
@@ -126,6 +411,7 @@ async function ejecutarBusqueda(){
         //se borran resultados anteriores y se muestra un mensaje de carga 
         contenedorResultados.innerHTML="";
         divInfo.textContent="Cargando resultados...";
+        divInfoBusqueda.innerHTML=""; //limpiamos la información de búsqueda
 
         //empezamos a construir la url de la peticion del usuario
         let url = `${URL_API}?apikey=${CLAVE_API}`;
@@ -175,10 +461,13 @@ async function ejecutarBusqueda(){
             //mostramos el error que envia la API 
             if (datos.Error === "Incorrect IMDb ID.") {
                 divInfo.textContent = "❌ No se encontro ninguna pelicula con ese titulo o ID.";
+                mostrarAlerta("No se encontró ninguna película con ese título o ID","error");
             } else {
-                divInfo.textContent =`Error: ${datos.Error || "Sin resultados"}`
+                divInfo.textContent =`Error: ${datos.Error || "Sin resultados"}`;
+                mostrarAlerta(datos.Error || "Sin resultados","error");
             }
             totalResultados = 0;
+            divInfoBusqueda.innerHTML=""; //limpiamos la información
             return;
         }
 
@@ -193,6 +482,9 @@ async function ejecutarBusqueda(){
             //Actualizamos el mensaje de informacion
             divInfo.textContent =
         `Modo : texto en el titulo | resultados: ${totalResultados} | pagina ${paginaActual} de ${paginasMaximas}`;
+            
+            //mostramos la información mejorada
+            mostrarInfoBusqueda("s",totalResultados,paginaActual,paginasMaximas);
         }
 
         //CASO 2 MODO TITULO EXACTO (t) O ID DE IMDB (i)
@@ -201,11 +493,17 @@ async function ejecutarBusqueda(){
             mostrarDetallePelicula(datos);
             divInfo.textContent =
         `Modo: ${modoActual.toUpperCase()} | Titulo: ${datos.Title}`;
+            
+            //mostramos la información mejorada
+            const modoTexto=modoActual==="t" ? "Título exacto" : "ID de IMDb";
+            mostrarInfoBusqueda(modoActual,0,0,0,datos.Title);
         }
 
     } catch (error){
         console.error(error);
         divInfo.textContent="Ocurrio un error al consultar en la base de datos ";
+        mostrarAlerta("Ocurrió un error al consultar la base de datos","error");
+        divInfoBusqueda.innerHTML=""; //limpiamos la información
     }
 
 }
@@ -251,7 +549,6 @@ function actualizarFondosConPeliculas(listaPeliculas) {
         
     }, 6000); // 6000 ms = 6 segundos
 }
-
 
 
 
@@ -357,3 +654,6 @@ actualizarFondosConPeliculas([pelicula]);
 
 
 }
+
+//cargamos las búsquedas recientes al iniciar la página
+mostrarBusquedasRecientes();
